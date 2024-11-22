@@ -59,6 +59,7 @@ app.post('/convert', async (req, res) => {
             format === 'avif' ? 'image/avif' : 
             'image/webp'
         );
+        res.set('Content-Disposition', `attachment; filename="${fileName}"`);
         res.send(outputBuffer);
     } catch (error) {
         console.error('Error converting image:', error);

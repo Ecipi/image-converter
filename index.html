@@ -30,8 +30,8 @@
     <h1>Convertisseur d'images</h1>
     <form id="imageForm">
       <input type="file" id="fileInput" accept="image/*" required />
-      <input type="number" id="widthInput" placeholder="Largeur" value="1000" required />
-      <input type="number" id="heightInput" placeholder="Hauteur" value="500" required />
+      <input type="number" id="widthInput" placeholder="Largeur" required />
+      <input type="number" id="heightInput" placeholder="Hauteur" required />
       <select id="formatInput">
         <option value="webp">WebP</option>
         <option value="jpeg">JPEG</option>
@@ -92,21 +92,37 @@
         }
       });
 
-      document.getElementById("downloadButton").addEventListener("click", () => {
-        if (convertedBlob && convertedImageFormat) {
-          const originalFileName = document.getElementById("fileInput").files[0].name;
-          const baseFileName = originalFileName.substring(0, originalFileName.lastIndexOf(".")) || originalFileName;
-          const newFileName = `${baseFileName}.${convertedImageFormat}`;
+      document.getElementById("downloadButton").addEventListener("click", async () => {
+        const fileInput = document.getElementById("fileInput");
+        const format = document.getElementById("formatInput").value;
+        const width = document.getElementById("widthInput").value;
+        const height = document.getElementById("heightInput").value;
 
-          const downloadLink = document.createElement("a");
-          downloadLink.href = convertedImageUrl;
-          downloadLink.download = newFileName;
+        try {
+          const response = await fetch("/convert", {
+            method: "POST",
+            headers: {
+              width: width,
+              height: height,
+              format: format,
+              "x-filename": fileInput.files[0].name,
+            },
+            body: fileInput.files[0],
+          });
 
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-
-          document.body.removeChild(downloadLink);
-          URL.revokeObjectURL(convertedImageUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          }
+        } catch (error) {
+          alert("Erreur lors du téléchargement : " + error.message);
         }
       });
     </script>
