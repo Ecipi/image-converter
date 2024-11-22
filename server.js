@@ -7,7 +7,10 @@ const port = 9461;
 
 app.use(bodyParser.raw({ type: 'image/*', limit: '10mb' }));
 
-app.post('/convert-to-webp', async (req, res) => {
+app.post('/convert', async (req, res) => {
+    console.log('Received a request');
+    console.log('Headers:', req.headers);
+    console.log('Body length:', req.body.length);
     try {
         const imageBuffer = req.body;
         const width = parseInt(req.headers['width']) || 1000;
