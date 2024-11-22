@@ -27,7 +27,7 @@
     </style>
   </head>
   <body>
-    <h1>Convertisseur d'Images</h1>
+    <h1>Convertisseur d'images</h1>
     <form id="imageForm">
       <input type="file" id="fileInput" accept="image/*" required />
       <input type="number" id="widthInput" placeholder="Largeur" value="1000" required />
@@ -42,7 +42,7 @@
     </form>
 
     <img id="preview" class="preview" style="display: none" />
-    <button id="downloadButton">Sauvegarder l'image convertie</button>
+    <button id="downloadButton">Télécharger</button>
 
     <script>
       let convertedImageUrl = null;
@@ -98,10 +98,15 @@
           const baseFileName = originalFileName.substring(0, originalFileName.lastIndexOf(".")) || originalFileName;
           const newFileName = `${baseFileName}.${convertedImageFormat}`;
 
-          const file = new File([convertedBlob], newFileName, { type: convertedBlob.type });
-          const fileUrl = window.URL.createObjectURL(file);
+          const downloadLink = document.createElement("a");
+          downloadLink.href = convertedImageUrl;
+          downloadLink.download = newFileName;
 
-          window.open(fileUrl, "_blank");
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+
+          document.body.removeChild(downloadLink);
+          URL.revokeObjectURL(convertedImageUrl);
         }
       });
     </script>
