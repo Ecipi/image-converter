@@ -1,11 +1,16 @@
 const express = require('express');
 const sharp = require('sharp');
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
 const port = 9461;
 
 app.use(bodyParser.raw({ type: 'image/*', limit: '10mb' }));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.post('/convert', async (req, res) => {
     console.log('Received a request');
