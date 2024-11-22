@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Convertisseur d'Images</title>
+    <style>
+      #downloadButton {
+        display: none;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      #downloadButton:hover {
+        background-color: #45a049;
+      }
+
+      .preview {
+        margin-top: 20px;
+        max-width: 300px;
+      }
+    </style>
   </head>
   <body>
     <h1>Convertisseur d'Images</h1>
@@ -19,7 +40,13 @@
       <button type="submit">Convertir</button>
     </form>
 
+    <img id="preview" class="preview" style="display: none" />
+    <button id="downloadButton">Télécharger l'image convertie</button>
+
     <script>
+      let convertedImageUrl = null;
+      let convertedImageFormat = null;
+
       document.getElementById("imageForm").addEventListener("submit", async (event) => {
         event.preventDefault();
 
@@ -28,31 +55,52 @@
         const height = document.getElementById("heightInput").value;
         const format = document.getElementById("formatInput").value;
 
+        event.target.querySelector('button[type="submit"]').disabled = true;
+
         const formData = new FormData();
         formData.append("image", fileInput.files[0]);
 
-        const response = await fetch("/convert", {
-          method: "POST",
-          headers: {
-            width: width,
-            height: height,
-            format: format,
-            "x-filename": fileInput.files[0].name,
-          },
-          body: fileInput.files[0],
-        });
+        try {
+          const response = await fetch("/convert", {
+            method: "POST",
+            headers: {
+              width: width,
+              height: height,
+              format: format,
+              "x-filename": fileInput.files[0].name,
+            },
+            body: fileInput.files[0],
+          });
 
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
+          if (response.ok) {
+            const blob = await response.blob();
+            convertedImageUrl = window.URL.createObjectURL(blob);
+            convertedImageFormat = format;
+
+            const preview = document.getElementById("preview");
+            preview.src = convertedImageUrl;
+            preview.style.display = "block";
+
+            const downloadButton = document.getElementById("downloadButton");
+            downloadButton.style.display = "block";
+          } else {
+            alert("Erreur lors de la conversion de l'image.");
+          }
+        } catch (error) {
+          alert("Erreur lors de la conversion de l'image : " + error.message);
+        } finally {
+          event.target.querySelector('button[type="submit"]').disabled = false;
+        }
+      });
+
+      document.getElementById("downloadButton").addEventListener("click", () => {
+        if (convertedImageUrl && convertedImageFormat) {
           const a = document.createElement("a");
-          a.href = url;
-          a.download = `converted-image.${format}`;
+          a.href = convertedImageUrl;
+          a.download = `converted-image.${convertedImageFormat}`;
           document.body.appendChild(a);
           a.click();
           a.remove();
-        } else {
-          alert("Erreur lors de la conversion de l'image.");
         }
       });
     </script>
