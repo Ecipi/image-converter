@@ -10,20 +10,30 @@ app.use(bodyParser.raw({ type: 'image/*', limit: '10mb' }));
 app.post('/convert-to-webp', async (req, res) => {
     try {
         const imageBuffer = req.body;
+        const width = parseInt(req.headers['width']) || 1000;
+        const height = parseInt(req.headers['height']) || 500;
+        const format = req.headers['format'] || 'webp';
 
         const resizedImageBuffer = await sharp(imageBuffer)
-            .resize(1000, 500)
+            .resize(width, height)
             .toBuffer();
 
-        const webpBuffer = await sharp(resizedImageBuffer)
-            .webp()
-            .toBuffer();
+        let outputBuffer;
+        if (format === 'jpeg') {
+            outputBuffer = await sharp(resizedImageBuffer)
+                .jpeg()
+                .toBuffer();
+        } else {
+            outputBuffer = await sharp(resizedImageBuffer)
+                .webp()
+                .toBuffer();
+        }
 
-        const fileName = req.headers['x-filename'] || 'default-image-name.webp';
+        const fileName = req.headers['x-filename'] || 'default-image-name.' + format;
 
-        res.set('Content-Type', 'image/webp');
+        res.set('Content-Type', format === 'jpeg' ? 'image/jpeg' : 'image/webp');
         res.set('Content-Disposition', `attachment; filename="${fileName}"`);
-        res.send(webpBuffer);
+        res.send(outputBuffer);
     } catch (error) {
         console.error('Error converting image:', error);
         res.status(500).send('An error occurred while converting the image.');

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convertisseur d'Images</title>
+  </head>
+  <body>
+    <h1>Convertisseur d'Images</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+
+    <label for="width">Largeur :</label>
+    <input type="number" id="width" placeholder="1000" min="1" />
+
+    <label for="height">Hauteur :</label>
+    <input type="number" id="height" placeholder="500" min="1" />
+
+    <label for="format">Format :</label>
+    <select id="format">
+      <option value="webp">WebP</option>
+      <option value="jpeg">JPEG</option>
+    </select>
+
+    <button id="convertButton">Convertir</button>
+    <a id="downloadLink" style="display: none">Télécharger l'image convertie</a>
+
+    <script>
+      document.getElementById("convertButton").addEventListener("click", async () => {
+        const fileInput = document.getElementById("imageInput");
+        const file = fileInput.files[0];
+        const width = document.getElementById("width").value || 1000;
+        const height = document.getElementById("height").value || 500;
+        const format = document.getElementById("format").value;
+
+        if (!file) {
+          alert("Veuillez sélectionner une image.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("x-filename", file.name);
+        formData.append("width", width);
+        formData.append("height", height);
+        formData.append("format", format);
+
+        try {
+          const response = await fetch("/convert-to-webp", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error("Erreur lors de la conversion de l'image.");
+          }
+
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const downloadLink = document.getElementById("downloadLink");
+          downloadLink.href = url;
+          downloadLink.download = file.name.replace(/\.[^/.]+$/, "") + "." + format;
+          downloadLink.style.display = "block";
+          downloadLink.textContent = "Télécharger l'image convertie";
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+    </script>
+  </body>
+</html>
