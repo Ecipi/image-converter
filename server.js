@@ -38,6 +38,11 @@ app.post('/convert', async (req, res) => {
                     .png()
                     .toBuffer();
                 break;
+            case 'avif':
+                outputBuffer = await sharp(resizedImageBuffer)
+                    .avif()
+                    .toBuffer();
+                break;
             case 'webp':
             default:
                 outputBuffer = await sharp(resizedImageBuffer)
@@ -48,8 +53,12 @@ app.post('/convert', async (req, res) => {
 
         const fileName = req.headers['x-filename'] || 'default-image-name.' + format;
 
-        res.set('Content-Type', format === 'jpeg' ? 'image/jpeg' : format === 'png' ? 'image/png' : 'image/webp');
-        res.set('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.set('Content-Type', 
+            format === 'jpeg' ? 'image/jpeg' : 
+            format === 'png' ? 'image/png' : 
+            format === 'avif' ? 'image/avif' : 
+            'image/webp'
+        );
         res.send(outputBuffer);
     } catch (error) {
         console.error('Error converting image:', error);

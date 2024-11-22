@@ -36,16 +36,18 @@
         <option value="webp">WebP</option>
         <option value="jpeg">JPEG</option>
         <option value="png">PNG</option>
+        <option value="avif">AVIF</option>
       </select>
       <button type="submit">Convertir</button>
     </form>
 
     <img id="preview" class="preview" style="display: none" />
-    <button id="downloadButton">Télécharger l'image convertie</button>
+    <button id="downloadButton">Sauvegarder l'image convertie</button>
 
     <script>
       let convertedImageUrl = null;
       let convertedImageFormat = null;
+      let convertedBlob = null;
 
       document.getElementById("imageForm").addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -56,9 +58,6 @@
         const format = document.getElementById("formatInput").value;
 
         event.target.querySelector('button[type="submit"]').disabled = true;
-
-        const formData = new FormData();
-        formData.append("image", fileInput.files[0]);
 
         try {
           const response = await fetch("/convert", {
@@ -73,8 +72,8 @@
           });
 
           if (response.ok) {
-            const blob = await response.blob();
-            convertedImageUrl = window.URL.createObjectURL(blob);
+            convertedBlob = await response.blob();
+            convertedImageUrl = window.URL.createObjectURL(convertedBlob);
             convertedImageFormat = format;
 
             const preview = document.getElementById("preview");
@@ -94,13 +93,15 @@
       });
 
       document.getElementById("downloadButton").addEventListener("click", () => {
-        if (convertedImageUrl && convertedImageFormat) {
-          const a = document.createElement("a");
-          a.href = convertedImageUrl;
-          a.download = `converted-image.${convertedImageFormat}`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+        if (convertedBlob && convertedImageFormat) {
+          const originalFileName = document.getElementById("fileInput").files[0].name;
+          const baseFileName = originalFileName.substring(0, originalFileName.lastIndexOf(".")) || originalFileName;
+          const newFileName = `${baseFileName}.${convertedImageFormat}`;
+
+          const file = new File([convertedBlob], newFileName, { type: convertedBlob.type });
+          const fileUrl = window.URL.createObjectURL(file);
+
+          window.open(fileUrl, "_blank");
         }
       });
     </script>
