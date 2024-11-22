@@ -7,62 +7,52 @@
   </head>
   <body>
     <h1>Convertisseur d'Images</h1>
-    <input type="file" id="imageInput" accept="image/*" />
-
-    <label for="width">Largeur :</label>
-    <input type="number" id="width" placeholder="1000" min="1" />
-
-    <label for="height">Hauteur :</label>
-    <input type="number" id="height" placeholder="500" min="1" />
-
-    <label for="format">Format :</label>
-    <select id="format">
-      <option value="webp">WebP</option>
-      <option value="jpeg">JPEG</option>
-    </select>
-
-    <button id="convertButton">Convertir</button>
-    <a id="downloadLink" style="display: none">Télécharger l'image convertie</a>
+    <form id="imageForm">
+      <input type="file" id="fileInput" accept="image/*" required />
+      <input type="number" id="widthInput" placeholder="Largeur" value="1000" required />
+      <input type="number" id="heightInput" placeholder="Hauteur" value="500" required />
+      <select id="formatInput">
+        <option value="webp">WebP</option>
+        <option value="jpeg">JPEG</option>
+        <option value="png">PNG</option>
+      </select>
+      <button type="submit">Convertir</button>
+    </form>
 
     <script>
-      document.getElementById("convertButton").addEventListener("click", async () => {
-        const fileInput = document.getElementById("imageInput");
-        const file = fileInput.files[0];
-        const width = document.getElementById("width").value || 1000;
-        const height = document.getElementById("height").value || 500;
-        const format = document.getElementById("format").value;
+      document.getElementById("imageForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-        if (!file) {
-          alert("Veuillez sélectionner une image.");
-          return;
-        }
+        const fileInput = document.getElementById("fileInput");
+        const width = document.getElementById("widthInput").value;
+        const height = document.getElementById("heightInput").value;
+        const format = document.getElementById("formatInput").value;
 
         const formData = new FormData();
-        formData.append("image", file);
-        formData.append("x-filename", file.name);
-        formData.append("width", width);
-        formData.append("height", height);
-        formData.append("format", format);
+        formData.append("image", fileInput.files[0]);
 
-        try {
-          const response = await fetch("/convert-to-webp", {
-            method: "POST",
-            body: formData,
-          });
+        const response = await fetch("/convert-to-webp", {
+          method: "POST",
+          headers: {
+            width: width,
+            height: height,
+            format: format,
+            "x-filename": fileInput.files[0].name,
+          },
+          body: fileInput.files[0],
+        });
 
-          if (!response.ok) {
-            throw new Error("Erreur lors de la conversion de l'image.");
-          }
-
+        if (response.ok) {
           const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          const downloadLink = document.getElementById("downloadLink");
-          downloadLink.href = url;
-          downloadLink.download = file.name.replace(/\.[^/.]+$/, "") + "." + format;
-          downloadLink.style.display = "block";
-          downloadLink.textContent = "Télécharger l'image convertie";
-        } catch (error) {
-          alert(error.message);
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `converted-image.${format}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        } else {
+          alert("Erreur lors de la conversion de l'image.");
         }
       });
     </script>

@@ -19,19 +19,28 @@ app.post('/convert-to-webp', async (req, res) => {
             .toBuffer();
 
         let outputBuffer;
-        if (format === 'jpeg') {
-            outputBuffer = await sharp(resizedImageBuffer)
-                .jpeg()
-                .toBuffer();
-        } else {
-            outputBuffer = await sharp(resizedImageBuffer)
-                .webp()
-                .toBuffer();
+        switch (format) {
+            case 'jpeg':
+                outputBuffer = await sharp(resizedImageBuffer)
+                    .jpeg()
+                    .toBuffer();
+                break;
+            case 'png':
+                outputBuffer = await sharp(resizedImageBuffer)
+                    .png()
+                    .toBuffer();
+                break;
+            case 'webp':
+            default:
+                outputBuffer = await sharp(resizedImageBuffer)
+                    .webp()
+                    .toBuffer();
+                break;
         }
 
         const fileName = req.headers['x-filename'] || 'default-image-name.' + format;
 
-        res.set('Content-Type', format === 'jpeg' ? 'image/jpeg' : 'image/webp');
+        res.set('Content-Type', format === 'jpeg' ? 'image/jpeg' : format === 'png' ? 'image/png' : 'image/webp');
         res.set('Content-Disposition', `attachment; filename="${fileName}"`);
         res.send(outputBuffer);
     } catch (error) {
