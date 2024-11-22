@@ -18,8 +18,8 @@ app.post('/convert', async (req, res) => {
     console.log('Body length:', req.body.length);
     try {
         const imageBuffer = req.body;
-        const width = parseInt(req.headers['width']) || 1000;
-        const height = parseInt(req.headers['height']) || 500;
+        const width = parseInt(req.headers['width']);
+        const height = parseInt(req.headers['height']);
         const format = req.headers['format'] || 'webp';
 
         const resizedImageBuffer = await sharp(imageBuffer)
