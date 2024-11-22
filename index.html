@@ -31,7 +31,7 @@
         const formData = new FormData();
         formData.append("image", fileInput.files[0]);
 
-        const response = await fetch("/convert-to-webp", {
+        const response = await fetch("/convert", {
           method: "POST",
           headers: {
             width: width,
