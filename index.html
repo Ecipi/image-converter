@@ -92,37 +92,16 @@
         }
       });
 
-      document.getElementById("downloadButton").addEventListener("click", async () => {
-        const fileInput = document.getElementById("fileInput");
-        const format = document.getElementById("formatInput").value;
-        const width = document.getElementById("widthInput").value;
-        const height = document.getElementById("heightInput").value;
+      document.getElementById("downloadButton").addEventListener("click", () => {
+        if (convertedBlob && convertedImageFormat) {
+          const originalFileName = document.getElementById("fileInput").files[0].name;
+          const baseFileName = originalFileName.substring(0, originalFileName.lastIndexOf(".")) || originalFileName;
+          const newFileName = `${baseFileName}.${convertedImageFormat}`;
 
-        try {
-          const response = await fetch("/convert", {
-            method: "POST",
-            headers: {
-              width: width,
-              height: height,
-              format: format,
-              "x-filename": fileInput.files[0].name,
-            },
-            body: fileInput.files[0],
-          });
+          const file = new File([convertedBlob], newFileName, { type: convertedBlob.type });
+          const fileUrl = window.URL.createObjectURL(file);
 
-          if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.style.display = "none";
-            a.href = url;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-          }
-        } catch (error) {
-          alert("Erreur lors du téléchargement : " + error.message);
+          window.open(fileUrl, "_blank");
         }
       });
     </script>
